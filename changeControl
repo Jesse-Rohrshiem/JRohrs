@@ -1,6 +1,6 @@
 import maya.cmds as cmds
 
-def changeControle (delete=True):
+def changeControle(delete=True):
     """
     first select the control you want to become the shape. Then select the old shape.
     (child then parent)
@@ -11,22 +11,36 @@ def changeControle (delete=True):
     # makes a list of the selected objects, then saves them in functions to easily call later
     selected = cmds.ls(sl=True)
 
+    if not len(selected):
+        raise ValueError('No objects selected. Please select the new shape first then the old.')
+
     firstObject = selected[0]
     secondObject = selected[1]
 
-    firstObjShape = firstObject + 'Shape'
-    secondObjShape = secondObject+'Shape'
+    firstObjShape = cmds.listRelatives(firstObject, s=True)
+    secondObjShape = cmds.listRelatives(secondObject, s=True)
 
-    # moves the new shape under the selected control
+    # Moves the new shape under the selected control
+
     cmds.parent(firstObjShape, secondObject, r=True, s=True)
 
     if delete:
         # if delete is true it will delete the original shape
-        cmds.delete(firstObject,secondObjShape)
+        cmds.delete(firstObject, secondObjShape)
+
+        for n in range(len(firstObjShape)):
+            firstShapeList = firstObjShape[n]
+            cmds.rename(firstShapeList, secondObject + 'shape')
     else:
         cmds.delete(firstObject)
-    # renaming the shape
-    cmds.rename(firstObjShape, secondObject + 'Shape')
+
+        for n in range(len(firstObjShape)):
+            firstShapeList = firstObjShape[n]
+            fred = len(secondObjShape)
+            cmds.rename(firstShapeList, secondObject + 'shape'+ str(n+fred))
+
+    cmds.select(secondObject)
+    print('*^* change_control_by_jesse *^*')
 
 
 def show():
@@ -40,6 +54,7 @@ def show():
     buildUI()
     cmds.showWindow()
 
+
 def buildUI():
     # this is where the UI elements are built.
     cmds.columnLayout()
@@ -52,9 +67,10 @@ def buildUI():
     cmds.button(label="Delete Old", command=deleteOld)
     cmds.button(label="Keep Old", command=keepOld)
 
+
 def deleteOld(*args):
     changeControle(delete=True)
 
+
 def keepOld(*args):
     changeControle(delete=False)
-
